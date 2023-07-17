@@ -1,0 +1,4 @@
+defense	observationTower	1000	1300	2
+production	mine	1200	1000	3
+main	main	1300	1000	3
+school	school	1000	1000	2
