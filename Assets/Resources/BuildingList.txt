@@ -1,0 +1,2 @@
+defense	observationTower	1000	1300
+production	a	1200	1000
