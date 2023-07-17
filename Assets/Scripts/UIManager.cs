@@ -49,6 +49,11 @@ public class UIManager : MonoBehaviour
 
     }
 
+    void Update()
+    {
+        if (!GameManager.GetGameManager().isBuildingUIOn) HideBuildingPopupUI();
+    }
+
     public void ShowBuildingPopupUI(ref BuildingData buildingData)
     {
         UpdateBuildingDataUI(ref buildingData);

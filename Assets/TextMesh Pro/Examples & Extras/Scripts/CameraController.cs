@@ -83,10 +83,8 @@ namespace TMPro.Examples
 
 
             // Check if we still have a valid target
+            // Check if we still have a valid mouseTarget
             if (CameraTarget != null)
-            {
-                if (CameraMode == CameraModes.Isometric)
-                {
                     desiredPosition = CameraTarget.position + Quaternion.Euler(ElevationAngle, OrbitalAngle, 0f) * new Vector3(0, 0, -FollowDistance);
                 }
                 else if (CameraMode == CameraModes.Follow)
@@ -287,6 +285,5 @@ namespace TMPro.Examples
             }
 
 
-        }
+        
     }
-}

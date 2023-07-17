@@ -78,6 +78,8 @@ public class GameManager : MonoBehaviour
     private TMP_Text timeText;
     [SerializeField]
     private TMP_Text moneyText;
+    public bool isBuildingUIOn = false;
+
     private void Awake()
     {
         instance = this;
@@ -116,7 +118,7 @@ public class GameManager : MonoBehaviour
         CreateMyBuildingObject();
         ChangeBuildingLimitLevel();
         UpdateUIText();
-        // °ÔÀÓ ½ÃÀÛ ½Ã ÀÌÀü¿¡ º¸À¯ÇÑ ºôµù »ý¼º
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     }
 
     // Update is called once per frame
@@ -134,14 +136,22 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void MouseClickDown() //GameObject Å¬¸¯ È®ÀÎ¿ë buildingÀÌ¿Ü¿¡ GameObject Å¬¸¯À¸·Î È®ÀÎ ÇÊ¿ä¾øÀ¸¸é ÄÚµå ¼öÁ¤ÇÒ ¿¹Á¤...
+    private void MouseClickDown() //GameObject Å¬ï¿½ï¿½ È®ï¿½Î¿ï¿½ buildingï¿½Ì¿Ü¿ï¿½ GameObject Å¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½...
     {
         if (EventSystem.current.IsPointerOverGameObject()) return;
-        if (mIsSelected) return;
 
         if (Input.GetMouseButtonDown(0))
         {
-            FindClickedObject();
+            if (isBuildingUIOn)
+            {
+                isBuildingUIOn = false;
+            }
+            else
+            {
+                Vector3 worldPoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                mHit = Physics2D.Raycast(worldPoint, Vector2.zero, 10.0f);
+                FindClickedObject();
+            }
         }
     }
 
@@ -225,5 +235,10 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log(s.id + " " + s.position);
         }
+    }
+
+    void FirstMapOn() // ï¿½Æ¹ï¿½ï¿½Íµï¿½ ï¿½ï¿½ï¿½ï¿½ maintilemapï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ ï¿½Ô¼ï¿½
+    {
+        if (PlayerData.buildingNum == 0)  GridBuildingSystem.gridSystemScript.SaveTileMap();
     }
 }

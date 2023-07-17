@@ -48,7 +48,7 @@ public class BuildingData
         position = new Vector3();
     }
 
-    public BuildingData DeepCopy() // °Ç¹° »ý¼º ½Ã È£Ãâ
+    public BuildingData DeepCopy() // ï¿½Ç¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ È£ï¿½ï¿½
     {
         BuildingData data = new BuildingData();
         data.id = this.id;

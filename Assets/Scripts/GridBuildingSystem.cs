@@ -4,6 +4,7 @@ using System.Collections.Generic;
 //using System.Numerics;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using System.IO;
 
 public enum TileType
 {
@@ -15,27 +16,24 @@ public enum TileType
 
 public class GridBuildingSystem : MonoBehaviour
 {
-    public static GridBuildingSystem current;
+    public static GridBuildingSystem gridSystemScript;
     public GridLayout gridLayout;
     [SerializeField]
     private Tilemap mainTilemap;
     [SerializeField]
-    private Tilemap subTileMap;
+    public Tilemap subTileMap;
 
+    public Building buildingScript = null;
+    private BoundsInt prevArea;
     public Dictionary<TileType, TileBase> tileBases = new Dictionary<TileType, TileBase>();
 
-    private BuildingSystem buildingScript = null;
-    private BoundsInt prevArea;
-
     private GameObject target;
+    private RaycastHit2D mHit;
+    Camera mainCam = null;
 
     private void Awake()
     {
-        current = this;
-    }
-    // Start is called before the first frame update
-    void Start()
-    {
+        gridSystemScript = this;
         string tilePath = @"Tiles/";
         tileBases.Add(TileType.Empty, null);
         tileBases.Add(TileType.White, Resources.Load<TileBase>(tilePath + "white"));
@@ -46,34 +44,149 @@ public class GridBuildingSystem : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-/*        if (!buildingScript)
-        {
-            return;
-        }*/
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            //ClearArea();
-            ReTakeArea(buildingScript.Building.BuildingData.area);
-            //Destroy(buildingScript.gameObject);
-        }
-
+        Remove();
+        MouseClickAndInstall();
+    }
+    private void MouseClickAndInstall()
+    {
         if (Input.GetMouseButtonDown(0))
         {
-            GetClickedObject();
+            target = GetClickedObject();
+            if (target == null) return;
+
+            if (target.CompareTag("Building"))
+            {
+                Debug.Log("Å¸ï¿½ï¿½ Ã£ï¿½ï¿½");
+                buildingScript = target.GetComponent<Building>();
+                buildingScript.BuildingData.isPlaced = false;
+                if (GameManager.GetGameManager().isBuildingUIOn) return;
+                ReSetTile();
+            }
         }
         else if (Input.GetMouseButtonUp(0))
         {
-            if (target != null && buildingScript.Installable())
+            if (target != null && Installable())
             {
-                buildingScript.Install();
-                Debug.Log("¼³Ä¡µÊ");
+                Debug.Log("ï¿½ï¿½Ä¡ï¿½ï¿½");
+                Install();
             }
             target = null;
         }
     }
+    private GameObject GetClickedObject()
+    {
+        Vector3 worldPoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        mHit = Physics2D.Raycast(worldPoint, Vector2.zero, 10.0f);
 
-    // Å¸ÀÏ °ü·Ã ÇÔ¼ö
-    public TileBase[] GetTilesBlock(BoundsInt area, Tilemap ttilemap)
+        if (mHit.collider != null)
+        {
+            target = mHit.collider.gameObject;
+        }
+       // Debug.Log(target);
+        return target;
+    }
+
+    private void Remove()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            RemoveArea(buildingScript.BuildingData.area);
+            Destroy(buildingScript.gameObject);
+        }
+    }
+   
+    // ï¿½Ç¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
+    public bool CanTakeArea(BoundsInt area)
+    {
+        TileBase[] baseArray = GetTilesArea(area, mainTilemap);
+        foreach (var b in baseArray)
+        {
+            if (b != tileBases[TileType.White])
+            {
+                Debug.Log("Cannot place here");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void InstallArea(BoundsInt area)
+    {
+        ChangeTiles(area, TileType.Empty, subTileMap);
+        ChangeTiles(area, TileType.Green, mainTilemap);
+    }
+
+    public void RemoveArea(BoundsInt area)
+    {
+        ChangeTiles(area, TileType.White, mainTilemap);
+    }
+
+    public void InitializeBuliding(Building building)
+    {
+        buildingScript = building;
+        ShowBuildingArea();
+    }
+
+    public bool Installable()
+    {
+        Vector3Int positionInt = gridLayout.LocalToCell(buildingScript.transform.position);
+        BoundsInt areaTemp = buildingScript.BuildingData.area;
+        areaTemp.position = positionInt;
+
+        if (CanTakeArea(areaTemp))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public void Install()
+    {
+        Vector3Int positionInt = gridLayout.LocalToCell(buildingScript.transform.position);
+        Debug.Log(positionInt);
+        BoundsInt areaTemp = buildingScript.BuildingData.area;
+        areaTemp.position = positionInt;
+        buildingScript.buildingData.isPlaced = true;
+        InstallArea(areaTemp);
+    }
+
+    // Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
+    private void ClearSubTileMap()
+    {
+        TileBase[] prevAreaInSubTileMap = new TileBase[prevArea.size.x * prevArea.size.y * prevArea.size.z];
+        FillTiles(prevAreaInSubTileMap, TileType.Empty);
+        subTileMap.SetTilesBlock(prevArea, prevAreaInSubTileMap);
+    }
+
+    public void ShowBuildingArea()
+    {
+        ClearSubTileMap();
+        buildingScript.BuildingData.area.position = gridLayout.WorldToCell(buildingScript.gameObject.transform.position); // ï¿½Ç¹ï¿½ï¿½ï¿½Ä¡ï¿½ï¿½ï¿½ï¿½
+        BoundsInt buildingArea = buildingScript.BuildingData.area;
+
+        TileBase[] baseArray = GetTilesArea(buildingArea, mainTilemap);
+
+        int size = baseArray.Length;
+        TileBase[] tileArray = new TileBase[size];
+
+        for (int i = 0; i < baseArray.Length; i++)
+        {
+            if (baseArray[i] == tileBases[TileType.White])
+            {
+                tileArray[i] = tileBases[TileType.Green];
+            }
+            else
+            {
+                FillTiles(tileArray, TileType.Red);
+                break;
+            }
+        }
+        subTileMap.SetTilesBlock(buildingArea, tileArray);
+        prevArea = buildingArea;
+    }
+
+    public TileBase[] GetTilesArea(BoundsInt area, Tilemap ttilemap)
     {
         TileBase[] array = new TileBase[area.size.x * area.size.y * area.size.z];
         int counter = 0;
@@ -88,7 +201,7 @@ public class GridBuildingSystem : MonoBehaviour
         return array;
     }
 
-    private void SetTileBlock(BoundsInt area, TileType type, Tilemap ttilemap)
+    public void ChangeTiles(BoundsInt area, TileType type, Tilemap ttilemap)
     {
         int size = area.size.x * area.size.y * area.size.z;
         TileBase[] tileArray = new TileBase[size];
@@ -96,7 +209,7 @@ public class GridBuildingSystem : MonoBehaviour
         ttilemap.SetTilesBlock(area, tileArray);
     }
 
-    private void FillTiles(TileBase[] arr, TileType type)
+    public void FillTiles(TileBase[] arr, TileType type)
     {
         for (int i = 0; i < arr.Length; i++)
         {
@@ -104,110 +217,60 @@ public class GridBuildingSystem : MonoBehaviour
         }
     }
 
-    // °Ç¹° °ü·Ã ÇÔ¼ö
-
-    private void ClearArea()
-    {
-        TileBase[] toClear = new TileBase[prevArea.size.x * prevArea.size.y * prevArea.size.z];
-        FillTiles(toClear, TileType.Empty);
-        subTileMap.SetTilesBlock(prevArea, toClear);
-    }
-
-    public void FollowBuilding()
-    {
-        ClearArea();
-        buildingScript.Building.BuildingData.area.position = gridLayout.WorldToCell(buildingScript.gameObject.transform.position); // °Ç¹°À§Ä¡ÀúÀå
-        BoundsInt buildingArea = buildingScript.Building.BuildingData.area;
-
-        TileBase[] baseArray = GetTilesBlock(buildingArea, mainTilemap);
-
-        int size = baseArray.Length;
-        TileBase[] tileArray = new TileBase[size];
-
-        for (int i = 0; i < baseArray.Length; i++)
-        {
-            if (baseArray[i] == tileBases[TileType.White])
-            {
-                Debug.Log("hi");
-                tileArray[i] = tileBases[TileType.Green];
-            }
-            else
-            {
-                FillTiles(tileArray, TileType.Red);
-                break;
-            }
-        }
-        subTileMap.SetTilesBlock(buildingArea, tileArray);
-        prevArea = buildingArea;
-    }
-
-    public bool CanTakeArea(BoundsInt area)
-    {
-        TileBase[] baseArray = GetTilesBlock(area, mainTilemap);
-        foreach (var b in baseArray)
-        {
-            if (b != tileBases[TileType.White])
-            {
-                Debug.Log("Cannot place here");
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public void TakeArea(BoundsInt area)
-    {
-        SetTileBlock(area, TileType.Empty, subTileMap);
-        SetTileBlock(area, TileType.Green, mainTilemap);
-    }
-
-    public void ReTakeArea(BoundsInt area)
-    {
-        SetTileBlock(area, TileType.White, subTileMap);
-        SetTileBlock(area, TileType.White, mainTilemap);
-    }
-
-    public void InitializeWithBuliding(BuildingSystem building)
-    {
-        //buildingScript = Instantiate(building, Vector3.zero, Quaternion.identity).GetComponent<Building>();
-        buildingScript = building;
-        FollowBuilding();
-    }
-
-    private void GetClickedObject()
-    {
-        Vector2 worldPoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        RaycastHit2D hit;
-        /*Ray ray = mainCam.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray.origin, ray.direction * 10, out hit))
-        {
-            target = hit.collider.gameObject;
-        }*/
-        hit = Physics2D.Raycast(worldPoint, Vector2.zero, 10.0f);
-        if (hit.collider == null)
-            return;
-        target = hit.collider.gameObject;
-        if (target.CompareTag("Building"))
-        {
-            buildingScript = target.GetComponent<BuildingSystem>();
-            buildingScript.Building.BuildingData.isPlaced = false;
-            ReSetTile();
-        }
-    }
-
     public void ReSetTile()
     {
-        BoundsInt areaTemp = buildingScript.Building.BuildingData.area;
-        TileBase[] baseArray = GetTilesBlock(areaTemp, subTileMap);
+        BoundsInt areaTemp = buildingScript.BuildingData.area;
+        TileBase[] baseArray = GetTilesArea(areaTemp, subTileMap);
         int size = baseArray.Length;
         for (int i = 0; i < baseArray.Length; i++)
         {
             if (baseArray[i] == tileBases[TileType.Empty])
             {
-                ReTakeArea(areaTemp);
+                RemoveArea(areaTemp);
             }
         }
     }
 
+    public void SaveTileMap()
+    {
+        BoundsInt bounds = mainTilemap.cellBounds;
 
+        MapData mapData = new MapData();
+
+        for (int x = bounds.min.x; x < bounds.max.x; x++)
+        {
+            for (int y = bounds.min.y; y < bounds.max.y; y++)
+            {
+                TileBase temp = mainTilemap.GetTile(new Vector3Int(x, y, 0));
+
+                if (temp != null)
+                {
+                    mapData.tiles.Add(temp);
+                    mapData.tilePoses.Add(new Vector3Int(x, y, 0));
+                }
+            }
+        }
+
+        string json = JsonUtility.ToJson(mapData);
+        File.WriteAllText(Application.dataPath + "/testMap.json", json);
+    }
+
+    public void LoadMap()
+    {
+        string json = File.ReadAllText(Application.dataPath + "/testMap.json");
+        MapData data = JsonUtility.FromJson<MapData>(json);
+
+        mainTilemap.ClearAllTiles();
+
+        for (int i = 0; i < data.tilePoses.Count; i++)
+        {
+            mainTilemap.SetTile(data.tilePoses[i], data.tiles[i]);
+        }
+    }
+}
+
+public class MapData // ï¿½ï¿½ï¿½ï¿½ï¿½
+{
+    public List<TileBase> tiles = new List<TileBase>();
+    public List<Vector3Int> tilePoses = new List<Vector3Int>();
 }

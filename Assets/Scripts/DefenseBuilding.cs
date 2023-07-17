@@ -15,7 +15,7 @@ public class DefenseBuildingData
 
     public DefenseBuildingData() {}
 
-    public DefenseBuildingData DeepCopy() // °Ç¹° »ý¼º ½Ã È£Ãâ
+    public DefenseBuildingData DeepCopy() // ï¿½Ç¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ È£ï¿½ï¿½
     {
         DefenseBuildingData data = new DefenseBuildingData();
         data.damage = this.damage;

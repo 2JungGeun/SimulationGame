@@ -11,7 +11,6 @@ public class BuildingUI : MonoBehaviour
     private TMP_Text textName;
     [SerializeField]
     private TMP_Text textPrice;
-
     // Start is called before the first frame update
     void Start()
     {

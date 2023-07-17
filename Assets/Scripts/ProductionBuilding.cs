@@ -13,8 +13,7 @@ public class ProductionBuildingData
     public int unitNum;
 
     public ProductionBuildingData() { }
-
-    public ProductionBuildingData DeepCopy() // °Ç¹° »ý¼º ½Ã È£Ãâ
+    public ProductionBuildingData DeepCopy() // ï¿½Ç¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ È£ï¿½ï¿½
     {
         ProductionBuildingData data = new ProductionBuildingData();
         data.yield = this.yield;
@@ -26,9 +25,9 @@ public class ProductionBuildingData
     {
         Int32.TryParse(yield, out this.yield);
         Int32.TryParse(capacity, out this.currentCapacity);
-        unitNum = 0;
     }
 }
+
 
 [Serializable]
 public class ProductionBuilding : Building

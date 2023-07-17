@@ -1,0 +1,11 @@
+observationTower	1200
+a	1100
+b	1050
+c	1001
+d	1300
+ricePaddy	1000
+e	1200
+f	1500
+g	1600
+h	1800
+i	2000
