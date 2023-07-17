@@ -11,7 +11,7 @@ public class BuildingSystem : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        building.BuildingData.position = GridBuildingSystem.current.gridLayout.CellToWorld(building.BuildingData.area.position);
+        building.BuildingData.position = GridBuildingSystem.gridSystemScript.gridLayout.CellToWorld(building.BuildingData.area.position);
         this.gameObject.transform.position = building.BuildingData.position;
         building.modifyUpgradeCost();
     }
@@ -36,38 +36,14 @@ public class BuildingSystem : MonoBehaviour
 
     private void OnMouseDrag()
     {
-        if (building.BuildingData.isPlaced)
-            return;
+        if (building.BuildingData.isPlaced) return;
 
         Vector3 mousePosition = new Vector3(Input.mousePosition.x, Input.mousePosition.y, 10);
         Vector3 objPosition = Camera.main.ScreenToWorldPoint(mousePosition);
         transform.position = objPosition;
-        GridBuildingSystem.current.FollowBuilding();
+        GridBuildingSystem.gridSystemScript.ShowBuildingArea();
         //transform.position = buildingData.position;
-        transform.position = GridBuildingSystem.current.gridLayout.CellToWorld(building.BuildingData.area.position);
+        transform.position = GridBuildingSystem.gridSystemScript.gridLayout.CellToWorld(building.BuildingData.area.position);
         GameManager.GetGameManager().MyBuildings.buildings[building.BuildingData.id].BuildingData.position = transform.position;
-    }
-
-    public bool Installable()
-    {
-        Vector3Int positionInt = GridBuildingSystem.current.gridLayout.LocalToCell(transform.position);
-        BoundsInt areaTemp = building.BuildingData.area;
-        areaTemp.position = positionInt;
-
-        if (GridBuildingSystem.current.CanTakeArea(areaTemp))
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    public void Install()
-    {
-        Vector3Int positionInt = GridBuildingSystem.current.gridLayout.LocalToCell(transform.position);
-        BoundsInt areaTemp = building.BuildingData.area;
-        areaTemp.position = positionInt;
-        building.BuildingData.isPlaced = true;
-        GridBuildingSystem.current.TakeArea(areaTemp);
     }
 }

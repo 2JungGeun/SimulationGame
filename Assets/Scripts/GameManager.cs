@@ -89,35 +89,11 @@ public class GameManager : MonoBehaviour
         DataManager.GetDataManager().LoadPlayerDataFromJson();
         //DataManager.GetDataManager().LoadBuildingDataFromJson();
         DataManager.GetDataManager().LoadBuildingDataFromBinaryfile();
-/*      if (playerData.buildingNum != 0)
-        {
-            
-        }
-        else
-        {
-            GameObject main = Instantiate(buildingPrefeb, Vector3.zero, Quaternion.identity);
-            BuildingData mainData = DataManager.GetDataManager().BuildingDataDic["main"].DeepCopy();
-            if(mainData.type == "main")
-            {
-                Building building = new DefenseBuilding();
-            }
-
-            building.BuildingData = mainData;
-            mainData.area.position = new Vector3Int(0, 0, 0);
-            mainData.id = 0;
-            main.AddComponent<BuildingSystem>().Building = mainData;
-            myBuildingsData.buildings.Add(mainData);
-            GameObject school = Instantiate(buildingPrefeb, Vector3.zero, Quaternion.identity);
-            BuildingData schoolData = DataManager.GetDataManager().BuildingDataDic["school"].DeepCopy();
-            schoolData.area.position = new Vector3Int(0, -2, 0);
-            schoolData.id = 1;
-            school.AddComponent<Building>().BuildingData = schoolData;
-            myBuildingsData.buildings.Add(schoolData);
-            playerData.buildingNum += 2;
-        }*/
         CreateMyBuildingObject();
         ChangeBuildingLimitLevel();
         UpdateUIText();
+        FirstMapOn();
+        GridBuildingSystem.gridSystemScript.LoadMap();
         // ���� ���� �� ������ ������ ���� ����
     }
 
@@ -133,6 +109,7 @@ public class GameManager : MonoBehaviour
         {
             GameObject obj = Instantiate(buildingPrefeb, building.BuildingData.position, Quaternion.identity);
             obj.AddComponent<BuildingSystem>().Building = building;
+            Debug.Log("실행됨");
         }
     }
 
@@ -148,8 +125,6 @@ public class GameManager : MonoBehaviour
             }
             else
             {
-                Vector3 worldPoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                mHit = Physics2D.Raycast(worldPoint, Vector2.zero, 10.0f);
                 FindClickedObject();
             }
         }
@@ -223,9 +198,13 @@ public class GameManager : MonoBehaviour
         UseMoney(price);
         GameObject obj = Instantiate(buildingPrefeb, new Vector3(0, 0, 0), Quaternion.identity);
         obj.AddComponent<BuildingSystem>().CreateBuildingData(name);
-        GridBuildingSystem.current.InitializeWithBuliding(obj.GetComponent<BuildingSystem>());
+        GridBuildingSystem.gridSystemScript.InitializeBuliding(obj.GetComponent<BuildingSystem>());
         obj.GetComponent<BuildingSystem>().Building.BuildingData.position = obj.transform.position;
         myBuildings.buildings.Add(obj.GetComponent<BuildingSystem>().Building);
+        foreach(Building b in myBuildings.buildings)
+        {
+            Debug.Log(b.BuildingData.id);
+        }
         playerData.buildingNum++;
     }
 

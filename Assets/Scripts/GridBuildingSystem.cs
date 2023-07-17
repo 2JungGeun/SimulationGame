@@ -23,7 +23,7 @@ public class GridBuildingSystem : MonoBehaviour
     [SerializeField]
     public Tilemap subTileMap;
 
-    public Building buildingScript = null;
+    public BuildingSystem buildingScript = null;
     private BoundsInt prevArea;
     public Dictionary<TileType, TileBase> tileBases = new Dictionary<TileType, TileBase>();
 
@@ -39,6 +39,11 @@ public class GridBuildingSystem : MonoBehaviour
         tileBases.Add(TileType.White, Resources.Load<TileBase>(tilePath + "white"));
         tileBases.Add(TileType.Green, Resources.Load<TileBase>(tilePath + "green"));
         tileBases.Add(TileType.Red, Resources.Load<TileBase>(tilePath + "red"));
+    }
+    // Start is called before the first frame update
+    void Start()
+    {
+        mainCam = Camera.main;
     }
 
     // Update is called once per frame
@@ -56,9 +61,9 @@ public class GridBuildingSystem : MonoBehaviour
 
             if (target.CompareTag("Building"))
             {
-                Debug.Log("Ÿ�� ã��");
-                buildingScript = target.GetComponent<Building>();
-                buildingScript.BuildingData.isPlaced = false;
+                Debug.Log("타켓 찾음");
+                buildingScript = target.GetComponent<BuildingSystem>();
+                buildingScript.Building.BuildingData.isPlaced = false;
                 if (GameManager.GetGameManager().isBuildingUIOn) return;
                 ReSetTile();
             }
@@ -67,7 +72,7 @@ public class GridBuildingSystem : MonoBehaviour
         {
             if (target != null && Installable())
             {
-                Debug.Log("��ġ��");
+                Debug.Log("설치됨");
                 Install();
             }
             target = null;
@@ -82,7 +87,7 @@ public class GridBuildingSystem : MonoBehaviour
         {
             target = mHit.collider.gameObject;
         }
-       // Debug.Log(target);
+        // Debug.Log(target);
         return target;
     }
 
@@ -90,12 +95,12 @@ public class GridBuildingSystem : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            RemoveArea(buildingScript.BuildingData.area);
+            RemoveArea(buildingScript.Building.BuildingData.area);
             Destroy(buildingScript.gameObject);
         }
     }
-   
-    // �ǹ� ���� �Լ�
+
+    // 건물 관련 함수
     public bool CanTakeArea(BoundsInt area)
     {
         TileBase[] baseArray = GetTilesArea(area, mainTilemap);
@@ -121,7 +126,7 @@ public class GridBuildingSystem : MonoBehaviour
         ChangeTiles(area, TileType.White, mainTilemap);
     }
 
-    public void InitializeBuliding(Building building)
+    public void InitializeBuliding(BuildingSystem building)
     {
         buildingScript = building;
         ShowBuildingArea();
@@ -130,7 +135,7 @@ public class GridBuildingSystem : MonoBehaviour
     public bool Installable()
     {
         Vector3Int positionInt = gridLayout.LocalToCell(buildingScript.transform.position);
-        BoundsInt areaTemp = buildingScript.BuildingData.area;
+        BoundsInt areaTemp = buildingScript.Building.BuildingData.area;
         areaTemp.position = positionInt;
 
         if (CanTakeArea(areaTemp))
@@ -145,13 +150,13 @@ public class GridBuildingSystem : MonoBehaviour
     {
         Vector3Int positionInt = gridLayout.LocalToCell(buildingScript.transform.position);
         Debug.Log(positionInt);
-        BoundsInt areaTemp = buildingScript.BuildingData.area;
+        BoundsInt areaTemp = buildingScript.Building.BuildingData.area;
         areaTemp.position = positionInt;
-        buildingScript.buildingData.isPlaced = true;
+        buildingScript.Building.BuildingData.isPlaced = true;
         InstallArea(areaTemp);
     }
 
-    // Ÿ�� ���� �Լ�
+    // 타일 관련 함수
     private void ClearSubTileMap()
     {
         TileBase[] prevAreaInSubTileMap = new TileBase[prevArea.size.x * prevArea.size.y * prevArea.size.z];
@@ -162,8 +167,8 @@ public class GridBuildingSystem : MonoBehaviour
     public void ShowBuildingArea()
     {
         ClearSubTileMap();
-        buildingScript.BuildingData.area.position = gridLayout.WorldToCell(buildingScript.gameObject.transform.position); // �ǹ���ġ����
-        BoundsInt buildingArea = buildingScript.BuildingData.area;
+        buildingScript.Building.BuildingData.area.position = gridLayout.WorldToCell(buildingScript.gameObject.transform.position); // 건물위치저장
+        BoundsInt buildingArea = buildingScript.Building.BuildingData.area;
 
         TileBase[] baseArray = GetTilesArea(buildingArea, mainTilemap);
 
@@ -219,7 +224,7 @@ public class GridBuildingSystem : MonoBehaviour
 
     public void ReSetTile()
     {
-        BoundsInt areaTemp = buildingScript.BuildingData.area;
+        BoundsInt areaTemp = buildingScript.Building.BuildingData.area;
         TileBase[] baseArray = GetTilesArea(areaTemp, subTileMap);
         int size = baseArray.Length;
         for (int i = 0; i < baseArray.Length; i++)
@@ -269,7 +274,7 @@ public class GridBuildingSystem : MonoBehaviour
     }
 }
 
-public class MapData // �����
+public class MapData // 저장용
 {
     public List<TileBase> tiles = new List<TileBase>();
     public List<Vector3Int> tilePoses = new List<Vector3Int>();

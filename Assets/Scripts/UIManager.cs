@@ -43,12 +43,6 @@ public class UIManager : MonoBehaviour
     private TMP_Text levelText;
     public TMP_Text LevelText { get { return levelText; } }
 
- 
-    void Start()
-    {
-
-    }
-
     void Update()
     {
         if (!GameManager.GetGameManager().isBuildingUIOn) HideBuildingPopupUI();
