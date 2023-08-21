@@ -89,9 +89,11 @@ public class GameManager : MonoBehaviour
         DataManager.GetDataManager().LoadPlayerDataFromJson();
         //DataManager.GetDataManager().LoadBuildingDataFromJson();
         DataManager.GetDataManager().LoadBuildingDataFromBinaryfile();
+
         CreateMyBuildingObject();
         ChangeBuildingLimitLevel();
         UpdateUIText();
+
         FirstMapOn();
         GridBuildingSystem.gridSystemScript.LoadMap();
         // ���� ���� �� ������ ������ ���� ����
@@ -218,6 +220,10 @@ public class GameManager : MonoBehaviour
 
     void FirstMapOn() // �ƹ��͵� ���� maintilemap�� �������ִ� �Լ�
     {
-        if (PlayerData.buildingNum == 0)  GridBuildingSystem.gridSystemScript.SaveTileMap();
+        if (PlayerData.buildingNum == 0)
+        {
+            GridBuildingSystem.gridSystemScript.SaveTileMap();
+            Debug.Log("FirstMapOn");
+        }
     }
 }

@@ -255,7 +255,6 @@ public class GridBuildingSystem : MonoBehaviour
                 }
             }
         }
-
         string json = JsonUtility.ToJson(mapData);
         File.WriteAllText(Application.dataPath + "/testMap.json", json);
     }
@@ -264,13 +263,14 @@ public class GridBuildingSystem : MonoBehaviour
     {
         string json = File.ReadAllText(Application.dataPath + "/testMap.json");
         MapData data = JsonUtility.FromJson<MapData>(json);
-
         mainTilemap.ClearAllTiles();
 
         for (int i = 0; i < data.tilePoses.Count; i++)
         {
             mainTilemap.SetTile(data.tilePoses[i], data.tiles[i]);
+            Debug.Log("LoadMapFor");
         }
+        Debug.Log("LoadMap");
     }
 }
 
